@@ -1,10 +1,6 @@
-# Restaurant Picker Game 🍽️
+# Restaurant Picker Game
 
-A fun 5-2-1 decision-making game to solve the eternal "Where should we eat?" dilemma!
-
-## 🎮 Play Now
-
-Visit: [https://yourusername.github.io/restaurant-picker/](https://yourusername.github.io/restaurant-picker/)
+A modern, beautifully designed 5-2-1 decision-making game to solve the eternal "Where should we eat?" dilemma!
 
 ## 🎯 How It Works
 
@@ -24,23 +20,20 @@ The **5-2-1 Method**:
 
 ## 🚀 Quick Start
 
-### Option 1: Use Hosted Version
-Simply visit the link above to start playing immediately!
-
-### Option 2: Host Your Own
+### Option 1: GitHub Pages Hosting
 
 1. Fork this repository
 2. Go to Settings → Pages
 3. Select "Deploy from branch" → main → root
-4. Your game will be live at `https://yourusername.github.io/restaurant-picker/`
+4. Your game will be live at `https://yourusername.github.io/fivethreeone/`
 
-### Option 3: Run Locally
+### Option 2: Run Locally
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/restaurant-picker.git
+git clone https://github.com/yourusername/fivethreeone.git
 
 # Open in browser
-open restaurant-game.html
+open index.html
 ```
 
 ## 🎲 Game Modes
@@ -79,11 +72,11 @@ The game is fully responsive and works great on:
 
 ## 🔧 Customization
 
-Want to customize the game? Edit these files:
+Want to customize the game? Edit the main file:
 
-- `restaurant-game.html` - Main game file
-- `index.html` - Alternative version with Firebase setup
-- Styles are embedded for easy customization
+- `index.html` - Main game file with embedded styles
+- `Logo.png` - Replace with your own logo
+- Modern orange color scheme throughout
 
 ## 🤝 Contributing
 
@@ -102,4 +95,4 @@ Created with AI assistance to demonstrate the possibilities of modern web develo
 
 ---
 
-**Note**: The Google Maps version (`restaurant-picker-modern.html`) requires an API key. The main version uses OpenStreetMap which is free and doesn't require any API keys!
+**Note**: This version uses OpenStreetMap with Leaflet.js which is completely free and doesn't require any API keys!
