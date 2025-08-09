@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Picker - 5-2-1 Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #FDB171 0%, #FDA085 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #FF9A56 0%, #FF6B6B 100%);
+            padding: 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .home-screen {
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .game-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .mode-card {
+            background: #FFF5F0;
+            padding: 40px 30px;
+            border-radius: 20px;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .mode-card:hover {
+            border-color: #FF9A56;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 154, 86, 0.2);
+        }
+
+        .mode-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .mode-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .mode-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .mode-btn {
+            background: #FF9A56;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-btn:hover {
+            background: #FF8040;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 154, 86, 0.3);
+        }
+
+        .session-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .session-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 450px;
+            width: 90%;
+            position: relative;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            color: #FF9A56;
+            margin-bottom: 10px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #FF9A56;
+        }
+
+        .session-options {
+            display: grid;
+            gap: 20px;
+        }
+
+        .session-option {
+            background: #FFF5F0;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .session-option h3 {
+            color: #FF9A56;
+            margin-bottom: 15px;
+        }
+
+        .session-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #FFE0D0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .session-input:focus {
+            outline: none;
+            border-color: #FF9A56;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: #FF9A56;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #FF8040;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 154, 86, 0.3);
+        }
+
+        .btn-secondary {
+            background: #FFE0D0;
+            color: #FF9A56;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #FFD0B0;
+        }
+
+        .session-code-display {
+            background: #333;
+            color: #4CAF50;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 24px;
+            letter-spacing: 3px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .copy-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #45a049;
+        }
+
+        .game-container {
+            display: none;
+        }
+
+        .game-container.active {
+            display: block;
+        }
+
+        /* Game styles */
+        .game-info {
+            background: #FFF5F0;
+            padding: 20px 40px;
+            border-bottom: 1px solid #FFE0D0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .player-setup {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .player-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .player-input input {
+            padding: 8px 12px;
+            border: 2px solid #FFE0D0;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 120px;
+        }
+
+        .badge {
+            background: #FF9A56;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .online-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .online-indicator.offline {
+            background: #999;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+            gap: 20px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #FFE0D0;
+            color: #FF9A56;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-circle {
+            background: #FF9A56;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .step.completed .step-circle {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .features-list {
+            text-align: left;
+            margin: 30px 0;
+            padding: 0 20px;
+        }
+
+        .features-list li {
+            margin: 10px 0;
+            color: #666;
+            list-style: none;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .features-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .how-it-works {
+            background: #FFF5F0;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .how-it-works h3 {
+            color: #FF9A56;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .steps-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .step-number {
+            background: #FF9A56;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+        }
+
+        .notification.show {
+            display: flex;
+        }
+
+        .notification.success {
+            border-left: 4px solid #4CAF50;
+        }
+
+        .notification.error {
+            border-left: 4px solid #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Home Screen -->
+        <div id="home-screen">
+            <div class="header">
+                <h1>🍽️ Restaurant Picker Game</h1>
+                <p>The 5-2-1 Method: Let's decide where to eat!</p>
+            </div>
+
+            <div class="home-screen">
+                <div class="how-it-works">
+                    <h3>How It Works</h3>
+                    <div class="steps-list">
+                        <div class="step-item">
+                            <div class="step-number">1</div>
+                            <div>Player 1 picks 5 restaurants they'd like</div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-number">2</div>
+                            <div>Player 2 eliminates 2 restaurants they don't want</div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-number">3</div>
+                            <div>Player 3 (or Player 1) makes the final choice!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-modes">
+                    <div class="mode-card" onclick="startLocalGame()">
+                        <div class="mode-icon">🏠</div>
+                        <div class="mode-title">Play Local</div>
+                        <div class="mode-description">
+                            Play on this device with friends around you. Perfect for quick decisions!
+                        </div>
+                        <ul class="features-list">
+                            <li>No internet required</li>
+                            <li>Pass the device between players</li>
+                            <li>Quick and easy setup</li>
+                        </ul>
+                        <button class="mode-btn">Start Local Game</button>
+                    </div>
+
+                    <div class="mode-card" onclick="showOnlineModal()">
+                        <div class="mode-icon">🌐</div>
+                        <div class="mode-title">Play Online</div>
+                        <div class="mode-description">
+                            Play with friends remotely using a session code. Everyone uses their own device!
+                        </div>
+                        <ul class="features-list">
+                            <li>Real-time synchronization</li>
+                            <li>Each player uses their device</li>
+                            <li>Share session code to join</li>
+                        </ul>
+                        <button class="mode-btn">Play Online</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Online Session Modal -->
+        <div class="session-modal" id="session-modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+                <div class="modal-header">
+                    <h2>🌐 Online Session</h2>
+                    <p>Play with friends using a session code</p>
+                </div>
+
+                <div class="session-options">
+                    <div class="session-option">
+                        <h3>Create New Session</h3>
+                        <input type="text" id="player-name-create" class="session-input" placeholder="Your Name" style="text-transform: none;">
+                        <button class="btn btn-primary" onclick="createSession()">Create Session</button>
+                    </div>
+
+                    <div style="text-align: center; color: #999; margin: 10px 0;">— OR —</div>
+
+                    <div class="session-option">
+                        <h3>Join Existing Session</h3>
+                        <input type="text" id="player-name-join" class="session-input" placeholder="Your Name" style="text-transform: none;">
+                        <input type="text" id="session-code-input" class="session-input" placeholder="Enter Session Code" maxlength="6">
+                        <button class="btn btn-primary" onclick="joinSession()">Join Session</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Created Modal -->
+        <div class="session-modal" id="session-created-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>✅ Session Created!</h2>
+                    <p>Share this code with your friends</p>
+                </div>
+                
+                <div class="session-code-display">
+                    <span id="session-code-display">ABCD12</span>
+                    <button class="copy-btn" onclick="copySessionCode()">📋 Copy</button>
+                </div>
+                
+                <p style="text-align: center; color: #666; margin: 20px 0;">
+                    Waiting for players to join...
+                </p>
+                
+                <button class="btn btn-primary" onclick="startOnlineGame()">Start Game</button>
+            </div>
+        </div>
+
+        <!-- Game Container -->
+        <div class="game-container" id="game-container"></div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <span id="notification-text"></span>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase configuration (using a free Firebase project for demo)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQV1gkwurKhZeYr0lKMEfzFQvzKCTQimE",
+            authDomain: "restaurant-picker-demo.firebaseapp.com",
+            databaseURL: "https://restaurant-picker-demo-default-rtdb.firebaseio.com",
+            projectId: "restaurant-picker-demo",
+            storageBucket: "restaurant-picker-demo.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Game state
+        let gameMode = 'local';
+        let sessionCode = '';
+        let playerName = '';
+        let sessionData = null;
+        let isHost = false;
+
+        // Generate random session code
+        function generateSessionCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            
+            notificationText.textContent = message;
+            notification.className = `notification show ${type}`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Start local game
+        function startLocalGame() {
+            gameMode = 'local';
+            loadGameInterface();
+        }
+
+        // Show online modal
+        function showOnlineModal() {
+            document.getElementById('session-modal').classList.add('active');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('session-modal').classList.remove('active');
+            document.getElementById('session-created-modal').classList.remove('active');
+        }
+
+        // Create online session
+        async function createSession() {
+            playerName = document.getElementById('player-name-create').value.trim();
+            
+            if (!playerName) {
+                showNotification('Please enter your name', 'error');
+                return;
+            }
+
+            sessionCode = generateSessionCode();
+            isHost = true;
+            
+            // Create session in Firebase
+            const sessionRef = database.ref(`sessions/${sessionCode}`);
+            await sessionRef.set({
+                host: playerName,
+                players: [playerName],
+                status: 'waiting',
+                currentStep: 1,
+                currentPlayer: playerName,
+                restaurants: [],
+                eliminated: [],
+                finalChoice: null,
+                created: Date.now()
+            });
+
+            // Show session code
+            document.getElementById('session-code-display').textContent = sessionCode;
+            document.getElementById('session-modal').classList.remove('active');
+            document.getElementById('session-created-modal').classList.add('active');
+            
+            // Listen for players joining
+            sessionRef.on('value', (snapshot) => {
+                sessionData = snapshot.val();
+                if (sessionData && sessionData.players.length > 1) {
+                    showNotification(`${sessionData.players[sessionData.players.length - 1]} joined!`);
+                }
+            });
+        }
+
+        // Join session
+        async function joinSession() {
+            playerName = document.getElementById('player-name-join').value.trim();
+            sessionCode = document.getElementById('session-code-input').value.trim().toUpperCase();
+            
+            if (!playerName || !sessionCode) {
+                showNotification('Please enter your name and session code', 'error');
+                return;
+            }
+
+            // Check if session exists
+            const sessionRef = database.ref(`sessions/${sessionCode}`);
+            const snapshot = await sessionRef.once('value');
+            
+            if (!snapshot.exists()) {
+                showNotification('Session not found', 'error');
+                return;
+            }
+
+            sessionData = snapshot.val();
+            
+            // Add player to session
+            if (!sessionData.players.includes(playerName)) {
+                sessionData.players.push(playerName);
+                await sessionRef.update({ players: sessionData.players });
+            }
+
+            gameMode = 'online';
+            closeModal();
+            loadGameInterface();
+            
+            // Listen for session updates
+            sessionRef.on('value', (snapshot) => {
+                sessionData = snapshot.val();
+                updateGameState();
+            });
+        }
+
+        // Copy session code
+        function copySessionCode() {
+            const code = document.getElementById('session-code-display').textContent;
+            navigator.clipboard.writeText(code);
+            showNotification('Session code copied!');
+        }
+
+        // Start online game
+        function startOnlineGame() {
+            if (sessionData && sessionData.players.length >= 2) {
+                gameMode = 'online';
+                database.ref(`sessions/${sessionCode}`).update({ status: 'playing' });
+                closeModal();
+                loadGameInterface();
+            } else {
+                showNotification('Need at least 2 players to start', 'error');
+            }
+        }
+
+        // Load game interface
+        function loadGameInterface() {
+            document.getElementById('home-screen').style.display = 'none';
+            
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.classList.add('active');
+            gameContainer.innerHTML = `
+                <div class="header">
+                    <h1>🍽️ Restaurant Picker Game</h1>
+                    <p>${gameMode === 'online' ? 'Online Session: ' + sessionCode : 'Local Game'}</p>
+                </div>
+
+                <div class="game-info">
+                    <div class="player-setup">
+                        <div class="player-input">
+                            <span>👤</span>
+                            <input type="text" id="player1-name" placeholder="Player 1" value="${gameMode === 'online' ? playerName : 'Player 1'}">
+                        </div>
+                        ${gameMode === 'local' ? `
+                            <div class="player-input">
+                                <span>👤</span>
+                                <input type="text" id="player2-name" placeholder="Player 2" value="Player 2">
+                            </div>
+                            <div class="player-input">
+                                <span>👤</span>
+                                <input type="text" id="player3-name" placeholder="Player 3 (optional)">
+                            </div>
+                        ` : ''}
+                    </div>
+                    ${gameMode === 'online' ? `
+                        <div class="online-indicator">
+                            <div class="pulse-dot"></div>
+                            <span>Online</span>
+                        </div>
+                    ` : ''}
+                    <div class="badge" id="current-turn">Player 1's Turn</div>
+                </div>
+
+                <div class="content">
+                    <div class="step-indicator">
+                        <div class="step active" id="step1">
+                            <div class="step-circle">1</div>
+                            <div class="step-label">Pick 5</div>
+                        </div>
+                        <div class="step" id="step2">
+                            <div class="step-circle">2</div>
+                            <div class="step-label">Remove 2</div>
+                        </div>
+                        <div class="step" id="step3">
+                            <div class="step-circle">3</div>
+                            <div class="step-label">Final Choice</div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; padding: 40px;">
+                        <h2>Simple Restaurant Selection</h2>
+                        <p style="color: #666; margin: 20px 0;">
+                            Since Google Maps API requires configuration, we'll use a simple text-based selection for this demo.
+                        </p>
+                        
+                        <div style="margin: 30px auto; max-width: 500px;">
+                            <input type="text" id="restaurant-input" placeholder="Enter restaurant name" 
+                                style="width: 100%; padding: 15px; font-size: 16px; border: 2px solid #FFE0D0; border-radius: 10px; margin-bottom: 15px;">
+                            
+                            <button class="btn btn-primary" onclick="addRestaurant()">Add Restaurant</button>
+                            
+                            <div id="restaurant-list" style="margin-top: 30px; text-align: left;"></div>
+                        </div>
+
+                        <button class="btn btn-secondary" onclick="backToHome()" style="margin-top: 30px;">
+                            ← Back to Home
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            if (gameMode === 'online') {
+                setupOnlineListeners();
+            }
+        }
+
+        // Update game state for online mode
+        function updateGameState() {
+            if (!sessionData) return;
+            
+            // Update UI based on session data
+            // This would sync the game state across all players
+            console.log('Session updated:', sessionData);
+        }
+
+        // Setup online listeners
+        function setupOnlineListeners() {
+            // Listen for game state changes
+            const sessionRef = database.ref(`sessions/${sessionCode}`);
+            sessionRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    // Update local game state
+                    // Sync restaurant selections, eliminations, etc.
+                }
+            });
+        }
+
+        // Add restaurant (simplified version)
+        let restaurants = [];
+        function addRestaurant() {
+            const input = document.getElementById('restaurant-input');
+            const name = input.value.trim();
+            
+            if (name && restaurants.length < 5) {
+                restaurants.push(name);
+                input.value = '';
+                updateRestaurantList();
+                
+                if (gameMode === 'online') {
+                    // Sync with Firebase
+                    database.ref(`sessions/${sessionCode}/restaurants`).set(restaurants);
+                }
+            }
+        }
+
+        // Update restaurant list display
+        function updateRestaurantList() {
+            const list = document.getElementById('restaurant-list');
+            list.innerHTML = '<h3 style="color: #FF9A56; margin-bottom: 15px;">Selected Restaurants (' + restaurants.length + '/5)</h3>';
+            
+            restaurants.forEach((restaurant, index) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'background: #FFF5F0; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
+                item.innerHTML = `
+                    <span>${index + 1}. ${restaurant}</span>
+                    <button onclick="removeRestaurant(${index})" style="background: #ff6b6b; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer;">Remove</button>
+                `;
+                list.appendChild(item);
+            });
+            
+            if (restaurants.length === 5) {
+                list.innerHTML += '<button class="btn btn-primary" style="margin-top: 20px; width: 100%;" onclick="proceedToElimination()">Proceed to Elimination Round</button>';
+            }
+        }
+
+        // Remove restaurant
+        function removeRestaurant(index) {
+            restaurants.splice(index, 1);
+            updateRestaurantList();
+            
+            if (gameMode === 'online') {
+                database.ref(`sessions/${sessionCode}/restaurants`).set(restaurants);
+            }
+        }
+
+        // Back to home
+        function backToHome() {
+            document.getElementById('game-container').classList.remove('active');
+            document.getElementById('home-screen').style.display = 'block';
+            restaurants = [];
+            
+            if (gameMode === 'online' && sessionCode) {
+                // Leave session
+                database.ref(`sessions/${sessionCode}`).off();
+            }
+        }
+
+        // Clean up old sessions (runs periodically)
+        function cleanupOldSessions() {
+            const sessionsRef = database.ref('sessions');
+            const cutoff = Date.now() - (24 * 60 * 60 * 1000); // 24 hours
+            
+            sessionsRef.once('value', (snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    const session = childSnapshot.val();
+                    if (session.created < cutoff) {
+                        childSnapshot.ref.remove();
+                    }
+                });
+            });
+        }
+
+        // Run cleanup on load
+        cleanupOldSessions();
+    </script>
+</body>
+</html>
