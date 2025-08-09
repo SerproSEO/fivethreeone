@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Picker - 5-2-1 Game</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 2px;
+            background: #e0e0e0;
+        }
+
+        .step.completed:not(:last-child)::after {
+            background: #4CAF50;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .step.active .step-circle {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .step.completed .step-circle {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .step.active .step-label {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .game-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .game-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .search-container {
+            margin-bottom: 30px;
+        }
+
+        #map {
+            height: 400px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .quick-picks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-pick-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .quick-pick-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(240, 147, 251, 0.4);
+        }
+
+        .restaurant-list {
+            display: grid;
+            gap: 15px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .restaurant-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .restaurant-card:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .restaurant-card.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .restaurant-card.eliminated {
+            opacity: 0.5;
+            text-decoration: line-through;
+            background: #f5f5f5;
+            pointer-events: none;
+        }
+
+        .restaurant-info {
+            flex: 1;
+        }
+
+        .restaurant-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .restaurant-details {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .restaurant-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .star {
+            color: #ffd700;
+        }
+
+        .btn {
+            padding: 14px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 25px rgba(240, 147, 251, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .selection-counter {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            text-align: center;
+            margin: 20px auto;
+            font-weight: 600;
+            font-size: 18px;
+            max-width: 300px;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .instruction-text {
+            text-align: center;
+            color: #333;
+            margin: 20px 0;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        .winner-section {
+            text-align: center;
+            padding: 50px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+
+        .winner-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .winner-title {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .winner-restaurant {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .remove-btn {
+            background: #ff4757;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .remove-btn:hover {
+            background: #ff3838;
+            transform: scale(1.05);
+        }
+
+        /* Modern scrollbar */
+        .restaurant-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .restaurant-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .restaurant-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .manual-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #e0e0e0;
+        }
+
+        .manual-input input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 16px;
+        }
+
+        .manual-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .places-container {
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .step-indicator {
+                gap: 15px;
+            }
+            
+            .step:not(:last-child)::after {
+                display: none;
+            }
+            
+            #map {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Restaurant Picker Game</h1>
+            <p>The 5-2-1 Method: Let's decide where to eat!</p>
+        </div>
+
+        <div class="content">
+            <div class="step-indicator">
+                <div class="step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Pick 5 Restaurants</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Remove 2 Restaurants</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Final Choice</div>
+                </div>
+            </div>
+
+            <!-- Step 1: Pick 5 Restaurants -->
+            <div class="game-section active" id="section1">
+                <div class="instruction-text">
+                    <strong>Player 1</strong>, search and select 5 restaurants you'd like to eat at!
+                </div>
+                
+                <div class="search-container">
+                    <input type="text" id="search-box" class="search-box" placeholder="🔍 Search for restaurants near you...">
+                    
+                    <div id="map"></div>
+                    
+                    <div class="quick-picks">
+                        <button class="quick-pick-btn" onclick="searchCategory('pizza')">🍕 Pizza</button>
+                        <button class="quick-pick-btn" onclick="searchCategory('burger')">🍔 Burgers</button>
+                        <button class="quick-pick-btn" onclick="searchCategory('sushi')">🍱 Sushi</button>
+                        <button class="quick-pick-btn" onclick="searchCategory('mexican')">🌮 Mexican</button>
+                        <button class="quick-pick-btn" onclick="searchCategory('chinese')">🥡 Chinese</button>
+                        <button class="quick-pick-btn" onclick="searchCategory('italian')">🍝 Italian</button>
+                        <button class="quick-pick-btn" onclick="searchCategory('thai')">🍜 Thai</button>
+                        <button class="quick-pick-btn" onclick="searchCategory('indian')">🍛 Indian</button>
+                    </div>
+
+                    <div class="manual-input">
+                        <input type="text" id="manual-restaurant" placeholder="Can't find it? Type restaurant name manually...">
+                        <button class="btn btn-secondary" onclick="addManualRestaurant()">Add</button>
+                    </div>
+                </div>
+                
+                <div class="selection-counter">
+                    Selected: <span id="selection-count">0</span> / 5
+                </div>
+
+                <div class="restaurant-list" id="selected-restaurants-1"></div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="continue-step1" onclick="proceedToStep2()" disabled>
+                        Continue to Elimination
+                    </button>
+                    <button class="btn btn-secondary" onclick="randomSelection()">
+                        🎲 Random 5 Nearby
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Remove 2 Restaurants -->
+            <div class="game-section" id="section2">
+                <div class="instruction-text">
+                    <strong>Player 2</strong>, click to remove 2 restaurants you don't want!
+                </div>
+                
+                <div class="selection-counter">
+                    Removed: <span id="remove-count">0</span> / 2
+                </div>
+
+                <div class="restaurant-list" id="selected-restaurants-2"></div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="backToStep1()">← Back</button>
+                    <button class="btn btn-primary" id="continue-step2" onclick="proceedToStep3()" disabled>
+                        Continue to Final Choice
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Final Choice -->
+            <div class="game-section" id="section3">
+                <div class="instruction-text">
+                    <strong>Player 3 (or Player 1)</strong>, make the final choice!
+                </div>
+                
+                <div class="restaurant-list" id="selected-restaurants-3"></div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="backToStep2()">← Back</button>
+                    <button class="btn btn-primary" onclick="randomFinalChoice()">
+                        🎲 Random Final Pick
+                    </button>
+                </div>
+            </div>
+
+            <!-- Winner Section -->
+            <div class="game-section" id="winner-section">
+                <div class="winner-section">
+                    <div class="winner-icon">🎉</div>
+                    <div class="winner-title">You're eating at:</div>
+                    <div class="winner-restaurant" id="winner-restaurant"></div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="resetGame()">🔄 Play Again</button>
+                        <button class="btn btn-secondary" id="directions-btn">📍 Get Directions</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            step: 1,
+            selectedRestaurants: [],
+            eliminatedRestaurants: [],
+            finalChoice: null
+        };
+
+        let map;
+        let service;
+        let searchBox;
+        let markers = [];
+        let userLocation = null;
+
+        // Initialize Google Maps
+        function initMap() {
+            // Default to New York if location not available
+            const defaultLocation = { lat: 40.7128, lng: -74.0060 };
+            
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: defaultLocation,
+                zoom: 13,
+                styles: [
+                    {
+                        "featureType": "all",
+                        "elementType": "geometry.fill",
+                        "stylers": [{"weight": "2.00"}]
+                    },
+                    {
+                        "featureType": "all",
+                        "elementType": "geometry.stroke",
+                        "stylers": [{"color": "#9c9c9c"}]
+                    },
+                    {
+                        "featureType": "all",
+                        "elementType": "labels.text",
+                        "stylers": [{"visibility": "on"}]
+                    },
+                    {
+                        "featureType": "landscape",
+                        "elementType": "all",
+                        "stylers": [{"color": "#f2f2f2"}]
+                    },
+                    {
+                        "featureType": "poi",
+                        "elementType": "all",
+                        "stylers": [{"visibility": "off"}]
+                    },
+                    {
+                        "featureType": "poi.business",
+                        "elementType": "all",
+                        "stylers": [{"visibility": "on"}]
+                    },
+                    {
+                        "featureType": "road",
+                        "elementType": "all",
+                        "stylers": [{"saturation": -100}, {"lightness": 45}]
+                    },
+                    {
+                        "featureType": "water",
+                        "elementType": "all",
+                        "stylers": [{"color": "#667eea"}, {"visibility": "on"}]
+                    }
+                ],
+                mapTypeControl: false,
+                fullscreenControl: false,
+                streetViewControl: false
+            });
+
+            service = new google.maps.places.PlacesService(map);
+
+            // Setup search box
+            const input = document.getElementById('search-box');
+            searchBox = new google.maps.places.SearchBox(input);
+            
+            map.addListener('bounds_changed', () => {
+                searchBox.setBounds(map.getBounds());
+            });
+
+            searchBox.addListener('places_changed', () => {
+                const places = searchBox.getPlaces();
+                if (places.length === 0) return;
+                
+                clearMarkers();
+                
+                const bounds = new google.maps.LatLngBounds();
+                places.forEach(place => {
+                    if (!place.geometry || !place.geometry.location) return;
+                    
+                    createMarker(place);
+                    
+                    if (place.geometry.viewport) {
+                        bounds.union(place.geometry.viewport);
+                    } else {
+                        bounds.extend(place.geometry.location);
+                    }
+                });
+                
+                map.fitBounds(bounds);
+            });
+
+            // Try to get user location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    map.setCenter(userLocation);
+                    
+                    // Add user location marker
+                    new google.maps.Marker({
+                        position: userLocation,
+                        map: map,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            scale: 10,
+                            fillColor: '#4285F4',
+                            fillOpacity: 1,
+                            strokeColor: 'white',
+                            strokeWeight: 2
+                        },
+                        title: 'You are here'
+                    });
+                    
+                    // Auto search nearby restaurants
+                    searchNearby();
+                });
+            }
+        }
+
+        // Create marker for a place
+        function createMarker(place) {
+            const marker = new google.maps.Marker({
+                map: map,
+                position: place.geometry.location,
+                title: place.name,
+                animation: google.maps.Animation.DROP
+            });
+            
+            markers.push(marker);
+            
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="padding: 10px;">
+                        <h3 style="margin: 0 0 10px 0;">${place.name}</h3>
+                        <p style="margin: 5px 0;">${place.vicinity || ''}</p>
+                        ${place.rating ? `<p style="margin: 5px 0;">⭐ ${place.rating} / 5</p>` : ''}
+                        <button onclick="selectRestaurant('${place.place_id}')" 
+                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                       color: white; 
+                                       border: none; 
+                                       padding: 8px 16px; 
+                                       border-radius: 20px; 
+                                       cursor: pointer;
+                                       margin-top: 10px;">
+                            Select This Restaurant
+                        </button>
+                    </div>
+                `
+            });
+            
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+            
+            // Store place data
+            marker.placeData = place;
+        }
+
+        // Clear all markers
+        function clearMarkers() {
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+        }
+
+        // Search nearby restaurants
+        function searchNearby() {
+            const request = {
+                location: userLocation || map.getCenter(),
+                radius: 2000,
+                type: 'restaurant'
+            };
+            
+            service.nearbySearch(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    clearMarkers();
+                    results.slice(0, 20).forEach(place => createMarker(place));
+                }
+            });
+        }
+
+        // Search by category
+        function searchCategory(category) {
+            const request = {
+                location: userLocation || map.getCenter(),
+                radius: 3000,
+                type: 'restaurant',
+                keyword: category
+            };
+            
+            service.nearbySearch(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    clearMarkers();
+                    results.forEach(place => createMarker(place));
+                    
+                    if (results.length > 0) {
+                        const bounds = new google.maps.LatLngBounds();
+                        results.forEach(place => {
+                            bounds.extend(place.geometry.location);
+                        });
+                        map.fitBounds(bounds);
+                    }
+                }
+            });
+        }
+
+        // Select restaurant from map
+        function selectRestaurant(placeId) {
+            // Find the place data
+            const marker = markers.find(m => m.placeData && m.placeData.place_id === placeId);
+            if (!marker) return;
+            
+            const place = marker.placeData;
+            
+            // Check if already selected
+            if (gameState.selectedRestaurants.find(r => r.place_id === placeId)) {
+                alert('This restaurant is already selected!');
+                return;
+            }
+            
+            if (gameState.selectedRestaurants.length >= 5) {
+                alert('You can only select 5 restaurants!');
+                return;
+            }
+            
+            gameState.selectedRestaurants.push(place);
+            updateRestaurantDisplay();
+        }
+
+        // Add restaurant manually
+        function addManualRestaurant() {
+            const input = document.getElementById('manual-restaurant');
+            const name = input.value.trim();
+            
+            if (!name) return;
+            
+            if (gameState.selectedRestaurants.length >= 5) {
+                alert('You can only select 5 restaurants!');
+                return;
+            }
+            
+            // Create a manual entry
+            const manualPlace = {
+                name: name,
+                place_id: 'manual_' + Date.now(),
+                isManual: true
+            };
+            
+            gameState.selectedRestaurants.push(manualPlace);
+            input.value = '';
+            updateRestaurantDisplay();
+        }
+
+        // Update restaurant display
+        function updateRestaurantDisplay() {
+            const container = document.getElementById('selected-restaurants-1');
+            container.innerHTML = '';
+            
+            gameState.selectedRestaurants.forEach((place, index) => {
+                const card = document.createElement('div');
+                card.className = 'restaurant-card';
+                
+                const rating = place.rating ? 
+                    `<div class="restaurant-rating">
+                        <span class="star">⭐</span> ${place.rating}
+                    </div>` : '';
+                
+                card.innerHTML = `
+                    <div class="restaurant-info">
+                        <div class="restaurant-name">${place.name}</div>
+                        <div class="restaurant-details">${place.vicinity || 'Location not specified'}</div>
+                        ${rating}
+                    </div>
+                    <button class="remove-btn" onclick="removeRestaurant(${index})">Remove</button>
+                `;
+                
+                container.appendChild(card);
+            });
+            
+            // Update counter
+            document.getElementById('selection-count').textContent = gameState.selectedRestaurants.length;
+            
+            // Enable/disable continue button
+            document.getElementById('continue-step1').disabled = gameState.selectedRestaurants.length !== 5;
+        }
+
+        // Remove restaurant from selection
+        function removeRestaurant(index) {
+            gameState.selectedRestaurants.splice(index, 1);
+            updateRestaurantDisplay();
+        }
+
+        // Random selection
+        function randomSelection() {
+            const request = {
+                location: userLocation || map.getCenter(),
+                radius: 2000,
+                type: 'restaurant'
+            };
+            
+            service.nearbySearch(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    // Shuffle and pick 5
+                    const shuffled = results.sort(() => 0.5 - Math.random());
+                    gameState.selectedRestaurants = shuffled.slice(0, 5);
+                    updateRestaurantDisplay();
+                    
+                    // Update map
+                    clearMarkers();
+                    gameState.selectedRestaurants.forEach(place => createMarker(place));
+                }
+            });
+        }
+
+        // Proceed to Step 2
+        function proceedToStep2() {
+            if (gameState.selectedRestaurants.length !== 5) {
+                alert('Please select exactly 5 restaurants!');
+                return;
+            }
+            
+            gameState.step = 2;
+            
+            // Update UI
+            document.getElementById('section1').classList.remove('active');
+            document.getElementById('section2').classList.add('active');
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step1').classList.add('completed');
+            document.getElementById('step2').classList.add('active');
+            
+            // Display restaurants for elimination
+            const container = document.getElementById('selected-restaurants-2');
+            container.innerHTML = '';
+            
+            gameState.selectedRestaurants.forEach((place, index) => {
+                const card = document.createElement('div');
+                card.className = 'restaurant-card';
+                card.dataset.index = index;
+                card.onclick = () => toggleElimination(index);
+                
+                const rating = place.rating ? 
+                    `<div class="restaurant-rating">
+                        <span class="star">⭐</span> ${place.rating}
+                    </div>` : '';
+                
+                card.innerHTML = `
+                    <div class="restaurant-info">
+                        <div class="restaurant-name">${place.name}</div>
+                        <div class="restaurant-details">${place.vicinity || 'Location not specified'}</div>
+                        ${rating}
+                    </div>
+                    <div style="font-size: 24px;">❌</div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Toggle restaurant elimination
+        function toggleElimination(index) {
+            const card = document.querySelectorAll('#selected-restaurants-2 .restaurant-card')[index];
+            const restaurant = gameState.selectedRestaurants[index];
+            
+            if (gameState.eliminatedRestaurants.includes(restaurant)) {
+                // Uneliminate
+                gameState.eliminatedRestaurants = gameState.eliminatedRestaurants.filter(r => r !== restaurant);
+                card.classList.remove('eliminated');
+            } else {
+                // Eliminate (max 2)
+                if (gameState.eliminatedRestaurants.length < 2) {
+                    gameState.eliminatedRestaurants.push(restaurant);
+                    card.classList.add('eliminated');
+                } else {
+                    alert('You can only eliminate 2 restaurants!');
+                }
+            }
+            
+            // Update counter
+            document.getElementById('remove-count').textContent = gameState.eliminatedRestaurants.length;
+            
+            // Enable/disable continue button
+            document.getElementById('continue-step2').disabled = gameState.eliminatedRestaurants.length !== 2;
+        }
+
+        // Proceed to Step 3
+        function proceedToStep3() {
+            if (gameState.eliminatedRestaurants.length !== 2) {
+                alert('Please eliminate exactly 2 restaurants!');
+                return;
+            }
+            
+            gameState.step = 3;
+            
+            // Filter out eliminated restaurants
+            const remainingRestaurants = gameState.selectedRestaurants.filter(
+                r => !gameState.eliminatedRestaurants.includes(r)
+            );
+            
+            // Update UI
+            document.getElementById('section2').classList.remove('active');
+            document.getElementById('section3').classList.add('active');
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step2').classList.add('completed');
+            document.getElementById('step3').classList.add('active');
+            
+            // Display remaining restaurants
+            const container = document.getElementById('selected-restaurants-3');
+            container.innerHTML = '';
+            
+            remainingRestaurants.forEach((place) => {
+                const card = document.createElement('div');
+                card.className = 'restaurant-card';
+                card.onclick = () => selectFinalChoice(place);
+                
+                const rating = place.rating ? 
+                    `<div class="restaurant-rating">
+                        <span class="star">⭐</span> ${place.rating}
+                    </div>` : '';
+                
+                card.innerHTML = `
+                    <div class="restaurant-info">
+                        <div class="restaurant-name">${place.name}</div>
+                        <div class="restaurant-details">${place.vicinity || 'Location not specified'}</div>
+                        ${rating}
+                    </div>
+                    <div style="font-size: 24px;">👆</div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Select final choice
+        function selectFinalChoice(place) {
+            gameState.finalChoice = place;
+            showWinner();
+        }
+
+        // Random final choice
+        function randomFinalChoice() {
+            const remainingRestaurants = gameState.selectedRestaurants.filter(
+                r => !gameState.eliminatedRestaurants.includes(r)
+            );
+            
+            const randomIndex = Math.floor(Math.random() * remainingRestaurants.length);
+            gameState.finalChoice = remainingRestaurants[randomIndex];
+            showWinner();
+        }
+
+        // Show winner
+        function showWinner() {
+            document.getElementById('section3').classList.remove('active');
+            document.getElementById('winner-section').classList.add('active');
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('step3').classList.add('completed');
+            
+            const place = gameState.finalChoice;
+            const rating = place.rating ? 
+                `<p style="font-size: 20px; margin: 10px 0;">⭐ ${place.rating} / 5</p>` : '';
+            
+            document.getElementById('winner-restaurant').innerHTML = `
+                <h2 style="font-size: 2.5em; margin-bottom: 10px; color: #667eea;">${place.name}</h2>
+                <p style="font-size: 18px; color: #666;">${place.vicinity || 'Location not specified'}</p>
+                ${rating}
+            `;
+            
+            // Setup directions button
+            if (!place.isManual && place.geometry) {
+                document.getElementById('directions-btn').onclick = () => {
+                    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`;
+                    window.open(url, '_blank');
+                };
+            } else {
+                document.getElementById('directions-btn').style.display = 'none';
+            }
+        }
+
+        // Navigation functions
+        function backToStep1() {
+            gameState.step = 1;
+            gameState.eliminatedRestaurants = [];
+            
+            document.getElementById('section2').classList.remove('active');
+            document.getElementById('section1').classList.add('active');
+            document.getElementById('step2').classList.remove('active', 'completed');
+            document.getElementById('step1').classList.remove('completed');
+            document.getElementById('step1').classList.add('active');
+        }
+
+        function backToStep2() {
+            gameState.step = 2;
+            
+            document.getElementById('section3').classList.remove('active');
+            document.getElementById('section2').classList.add('active');
+            document.getElementById('step3').classList.remove('active', 'completed');
+            document.getElementById('step2').classList.remove('completed');
+            document.getElementById('step2').classList.add('active');
+        }
+
+        // Reset game
+        function resetGame() {
+            gameState = {
+                step: 1,
+                selectedRestaurants: [],
+                eliminatedRestaurants: [],
+                finalChoice: null
+            };
+            
+            // Reset UI
+            document.querySelectorAll('.game-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById('section1').classList.add('active');
+            
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active', 'completed');
+            });
+            document.getElementById('step1').classList.add('active');
+            
+            // Clear displays
+            updateRestaurantDisplay();
+            document.getElementById('search-box').value = '';
+            clearMarkers();
+            
+            // Re-search nearby
+            if (userLocation) {
+                searchNearby();
+            }
+        }
+    </script>
+
+    <!-- Load Google Maps JavaScript API -->
+    <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOf8HfhQtVWA_Fi1fFXooUpr7RsY7ypKY&libraries=places&callback=initMap">
+    </script>
+</body>
+</html>
